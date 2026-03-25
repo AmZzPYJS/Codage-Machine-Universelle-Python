@@ -1,0 +1,7 @@
+etats: q0,q1
+alphabet_entree: 0,1
+alphabet_travail: 0,1,#,|,_
+etat_initial: q0
+etat_final: qf
+transition: q0,0 -> q1,1,R
+transition: q1,1 -> qf,1,R
