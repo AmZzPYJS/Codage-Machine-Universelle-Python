@@ -2,29 +2,31 @@ from exo2 import charger_mt, creer_configuration_initiale
 from exo3 import un_pas_de_calcul
 
 
-def simuler_machine(mt, mot):
+def simuler_machine(mt, mot, max_etapes=10000):
     config = creer_configuration_initiale(mt, mot)
 
-    print("Départ :", config.tete ,",", config.ruban ,",", config.etat)
+    compteur = 0
 
-    numero_etape = 0
+    while not mt.est_final(config.etat):
+        if compteur >= max_etapes:
+            print("Limite d'étapes atteinte.")
+            return config
 
-    while config.etat != mt.etat_final:
         nouvelle_config = un_pas_de_calcul(mt, config)
 
         if nouvelle_config is None:
-            print("Aucune transition possible")
-            return None
+            print("Machine bloquée.")
+            return config
 
-        numero_etape = numero_etape + 1
         config = nouvelle_config
+        compteur += 1
 
-        print("Étape", numero_etape ,":", config.tete ,",", config.ruban ,":", config.etat)
-
-    print("Configuration finale : (", config.tete ,",", config.ruban ,",", config.etat)
     return config
 
 
 if __name__ == "__main__":
-    mt = charger_mt("machine.txt")
-    resultat = simuler_machine(mt, "101")
+    mt = charger_mt("machines/q6_compare.tm")
+    resultat = simuler_machine(mt, "10#11", 1000)
+    print("État final :", resultat.etat)
+    print("Rubans :", resultat.rubans)
+    print("Têtes :", resultat.tetes)
