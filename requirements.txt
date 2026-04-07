@@ -1,0 +1,11 @@
+# Commandes à lancer
+
+python main.py q2 machines/q6_compare.tm 10#11
+python main.py q3 machines/q6_compare.tm 10#11
+python main.py q4 machines/q6_compare.tm 10#11
+python main.py q5 machines/q6_compare.tm 10#11
+python main.py q6_compare
+python main.py q6_search
+python main.py q6_mul
+python main.py q7 machines/q6_compare.tm
+python main.py q8 machines/q6_compare.tm
