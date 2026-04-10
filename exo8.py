@@ -1,3 +1,6 @@
+"""Pour le codage binaire, nous avons choisi de coder la chaîne textuelle obtenue à la question 7 en UTF-8, puis de convertir chaque
+octet en binaire sur 8 bits. L’interprétation entière est l’entier naturel correspondant à cette écriture binaire."""
+
 from exo7 import coder_machine
 
 

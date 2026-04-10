@@ -1,44 +1,43 @@
 name: Unary multiplication
-init: qCopyN
+init: qInit
 accept: qAccept
+
+qInit,1,_,_
+qCopyN,1,|,|,-,>,>
+
+qStartCopy,X,1,_
+qCopyToRes,X,1,_,-,-,-
 
 qCopyN,1,_,_
 qCopyN,1,1,_,>,>,-
 qCopyN,#,_,_
-qSeekM,#,_,_,>,-,-
+qRewind2,#,_,_,> ,<,-
 
-qSeekM,1,_,_
-qMarkM,1,_,_,>,-,-
-qSeekM,_,_,_
-qWriteBack,_,_,_,<,-,<
+qRewind2,1,1,_
+qRewind2,1,1,_,-,<,-
+qRewind2,1,|,_
+qFindM,1,|,_,-,-,-
+qRewind2,_,1,_
+qRewind2,_,1,_,-,<,-
+qRewind2,_,|,_
+qFindM,_,|,_,-,-,-
 
-qMarkM,1,_,_
-qAddN,1,_,_,> ,<,-
-qMarkM,_,_,_
-qWriteBack,_,_,_,<,-,<
+qFindM,X,|,_
+qFindM,X,|,_,>,-,-
+qFindM,1,|,_
+qStartCopy,X,|,_,-,>,-
+qFindM,_,|,_
+qAccept,_,|,_,-,-,-
 
-qAddN,1,1,_
-qAddN,1,1,1,-,>,>
-qAddN,1,_,_
-qReturnM,1,_,_,-,<,-
-qAddN,#,_,_
-qReturnM,#,_,_,-,<,-
+qStartCopy,X,|,_
+qCopyToRes,X,|,_,-,>,-
 
-qReturnM,1,1,1
-qReturnM,1,1,1,-,<,-
-qReturnM,1,1,_
-qReturnM,1,1,_,-,<,-
-qReturnM,#,_,_
-qMarkM,#,_,_,> ,>,-
+qCopyToRes,X,1,_
+qCopyToRes,X,1,1,-,>,>
+qCopyToRes,X,_,_
+qRewind2AfterCopy,X,_,_,-,<,-
 
-qWriteBack,1,_,1
-qWriteBack,1,_,1,<,-,<
-qWriteBack,#,_,1
-qWriteBack,#,_,1,<,-,<
-qWriteBack,_,_,_
-qCopyOut,_,_,_,>,-,>
-
-qCopyOut,_,_,1
-qCopyOut,1,_,1,>,-,>
-qCopyOut,_,_,_
-qAccept,_,_,_,-,-,-
+qRewind2AfterCopy,X,1,_
+qRewind2AfterCopy,X,1,_,-,<,-
+qRewind2AfterCopy,X,|,_
+qFindM,X,|,_,>,-,-

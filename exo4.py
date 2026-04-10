@@ -1,13 +1,16 @@
-from exo2 import charger_mt, creer_configuration_initiale
+from exo2 import creer_configuration_initiale
 from exo3 import un_pas_de_calcul
 
 
 def simuler_machine(mt, mot, max_etapes=10000):
     config = creer_configuration_initiale(mt, mot)
-
     compteur = 0
 
-    while not mt.est_final(config.etat):
+    while True:
+        if mt.est_final(config.etat):
+            print("Machine arrêtée dans un état final.")
+            return config
+
         if compteur >= max_etapes:
             print("Limite d'étapes atteinte.")
             return config
@@ -21,10 +24,10 @@ def simuler_machine(mt, mot, max_etapes=10000):
         config = nouvelle_config
         compteur += 1
 
-    return config
-
 
 if __name__ == "__main__":
+    from exo2 import charger_mt
+
     mt = charger_mt("machines/q6_compare.tm")
     resultat = simuler_machine(mt, "10#11", 1000)
     print("État final :", resultat.etat)

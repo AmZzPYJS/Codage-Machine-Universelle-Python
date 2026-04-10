@@ -24,6 +24,12 @@ qBack,#,0
 qBack,#,0,<,<
 qBack,#,1
 qBack,#,1,<,<
+qBack,0,_
+qBack,0,_,<,-
+qBack,1,_
+qBack,1,_,<,-
+qBack,#,_
+qBack,#,_,<,-
 qBack,_,_
 qLen,_,_,>,>
 
@@ -51,12 +57,22 @@ qBack2,#,_,<,<
 
 qBack2,0,0
 qBack2,0,0,<,<
+qBack2,0,1
+qBack2,0,1,<,<
+qBack2,1,0
+qBack2,1,0,<,<
 qBack2,1,1
 qBack2,1,1,<,<
 qBack2,#,0
 qBack2,#,0,<,<
 qBack2,#,1
 qBack2,#,1,<,<
+qBack2,0,_
+qBack2,0,_,<,-
+qBack2,1,_
+qBack2,1,_,<,-
+qBack2,#,_
+qBack2,#,_,<,-
 qBack2,_,_
 qCmp,_,_,>,>
 
@@ -73,13 +89,28 @@ qLoop,#,_,-,-
 
 qLoop,0,0
 qLoop,0,0,-,-
-qLoop,1,1
-qLoop,1,1,-,-
+qLoop,0,1
+qLoop,0,1,-,-
 qLoop,0,_
 qLoop,0,_,-,-
+
+qLoop,1,0
+qLoop,1,0,-,-
+qLoop,1,1
+qLoop,1,1,-,-
 qLoop,1,_
 qLoop,1,_,-,-
+
+qLoop,#,0
+qLoop,#,0,-,-
+qLoop,#,1
+qLoop,#,1,-,-
 qLoop,#,_
 qLoop,#,_,-,-
+
+qLoop,_,0
+qLoop,_,0,-,-
+qLoop,_,1
+qLoop,_,1,-,-
 qLoop,_,_
 qLoop,_,_,-,-
