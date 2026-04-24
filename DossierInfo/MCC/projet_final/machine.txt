@@ -1,0 +1,6 @@
+# BROUILLON — format maison non compatible avec le simulateur
+# Ce fichier ne fait PAS partie du projet rendu.
+# Il illustrait une syntaxe alternative (non utilisée) :
+#   transition: q0,1 -> q1,0,R
+# Le format officiel utilisé dans le projet est celui de turingmachinesimulator.com
+# (voir dossier machines/).

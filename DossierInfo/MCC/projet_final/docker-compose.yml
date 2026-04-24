@@ -1,0 +1,19 @@
+services:
+
+  # Lance tous les tests unitaires
+  tests:
+    build: .
+    command: python tests.py
+
+  # Simulation interactive — usage :
+  #   docker compose run simulate q4 machines/q6_compare.tm 10#11
+  simulate:
+    build: .
+    entrypoint: ["python", "main.py"]
+
+  # Visualiseur HTML — ouvrir http://localhost:8080 dans le navigateur
+  visualizer:
+    build: .
+    command: python -m http.server 8080
+    ports:
+      - "8080:8080"

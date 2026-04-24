@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulateur Machine de Turing</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0e0f11;
+  --surface: #16181c;
+  --surface2: #1e2026;
+  --border: rgba(255,255,255,0.08);
+  --text: #f0f0ee;
+  --muted: #8a8d94;
+  --accent: #6c63ff;
+  --green: #52d996;
+  --red: #ff6b6b;
+  --amber: #ffb347;
+  --blue: #4da6ff;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Courier New', monospace;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(108,99,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(108,99,255,0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wrap { max-width: 960px; margin: 0 auto; position: relative; z-index: 1; }
+
+h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+  letter-spacing: -0.5px;
+}
+.subtitle { color: var(--muted); font-size: 13px; margin-bottom: 28px; }
+
+/* CONTROLS */
+.controls {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.controls label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 6px; }
+.controls select, .controls input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+}
+.controls select:focus, .controls input:focus { border-color: var(--accent); }
+
+.btn-row { grid-column: 1 / -1; display: flex; gap: 10px; flex-wrap: wrap; }
+.btn {
+  padding: 9px 20px;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #7b74ff; }
+.btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* STATUS BAR */
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex-shrink: 0;
+  transition: background 0.3s;
+}
+.status-dot.running  { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+.status-dot.accepted { background: var(--green);  box-shadow: 0 0 8px var(--green); }
+.status-dot.rejected { background: var(--red);    box-shadow: 0 0 8px var(--red); }
+.status-dot.blocked  { background: var(--red);    box-shadow: 0 0 8px var(--red); }
+
+.status-state { color: var(--blue); font-weight: 700; font-size: 15px; }
+.status-step  { color: var(--muted); margin-left: auto; font-size: 12px; }
+
+/* TAPE */
+.tape-section { margin-bottom: 12px; }
+.tape-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+
+.tape-viewport {
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  position: relative;
+}
+
+.tape-scroll {
+  display: flex;
+  padding: 12px 16px;
+  gap: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  position: relative;
+  min-height: 80px;
+  align-items: center;
+}
+.tape-scroll::-webkit-scrollbar { display: none; }
+
+.cell {
+  min-width: 44px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  position: relative;
+  user-select: none;
+}
+
+.cell.active {
+  border-color: var(--accent);
+  color: #fff;
+  background: rgba(108,99,255,0.12);
+  box-shadow: 0 0 12px rgba(108,99,255,0.3);
+}
+
+.cell.written {
+  color: var(--amber);
+  border-color: rgba(255,179,71,0.4);
+}
+
+.cell.blank { color: rgba(255,255,255,0.15); }
+
+.head-arrow {
+  position: absolute;
+  bottom: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 14px;
+  color: var(--accent);
+  pointer-events: none;
+}
+
+/* TRANSITION LOG */
+.log-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 20px;
+}
+.log-title { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
+.log-entries {
+  max-height: 200px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.log-entry {
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.log-entry .step-n { color: var(--accent); font-weight: 700; min-width: 40px; }
+.log-entry .transition { color: var(--text); }
+.log-entry.accepted { border-color: rgba(82,217,150,0.3); background: rgba(82,217,150,0.04); }
+.log-entry.rejected  { border-color: rgba(255,107,107,0.3); background: rgba(255,107,107,0.04); }
+
+/* SPEED SLIDER */
+.speed-row { display: flex; align-items: center; gap: 12px; }
+.speed-row label { font-size: 11px; color: var(--muted); white-space: nowrap; }
+input[type=range] { flex: 1; accent-color: var(--accent); }
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+.running .status-dot { animation: pulse 1s infinite; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🖥 Simulateur Machine de Turing</h1>
+  <p class="subtitle">Visualisation pas-à-pas — IN620 Machine Universelle</p>
+
+  <div class="controls">
+    <div>
+      <label>Machine</label>
+      <select id="machineSelect">
+        <option value="compare">Comparaison d'entiers (x &lt; y)</option>
+        <option value="search">Recherche dans une liste</option>
+        <option value="mul">Multiplication unaire (1ⁿ × 1ᵐ)</option>
+      </select>
+    </div>
+    <div>
+      <label>Mot d'entrée</label>
+      <input type="text" id="inputWord" value="10#11" placeholder="ex: 10#11">
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btnLoad" onclick="loadMachine()">Charger</button>
+      <button class="btn btn-secondary" id="btnStep" onclick="step()" disabled>Pas →</button>
+      <button class="btn btn-secondary" id="btnRun"  onclick="runAuto()" disabled>▶ Auto</button>
+      <button class="btn btn-secondary" id="btnPause" onclick="pauseAuto()" disabled>⏸ Pause</button>
+      <button class="btn btn-secondary" id="btnReset" onclick="resetSim()" disabled>↺ Reset</button>
+    </div>
+    <div class="speed-row">
+      <label>Vitesse</label>
+      <input type="range" id="speed" min="50" max="1000" value="300" step="50">
+      <span id="speedVal" style="font-size:12px;color:var(--muted);min-width:50px">300ms</span>
+    </div>
+  </div>
+
+  <div class="status-bar" id="statusBar">
+    <div class="status-dot" id="statusDot"></div>
+    <span>État :</span>
+    <span class="status-state" id="statusState">—</span>
+    <span class="status-step" id="statusStep">Étape 0</span>
+  </div>
+
+  <div id="tapesContainer"></div>
+
+  <div class="log-section">
+    <div class="log-title">Journal des transitions</div>
+    <div class="log-entries" id="logEntries">
+      <div class="log-entry"><span class="step-n">—</span><span class="transition">Chargez une machine pour commencer</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Machines définies inline (format compacte) ──────────────────────────────
+
+const MACHINES = {
+  compare: {
+    name: "Compare x<y",
+    init: "qSeekHash",
+    accept: "qAccept",
+    tapes: 2,
+    delta: buildDelta([
+      ["qSeekHash","0","_",  "qSeekHash","0","_",">","-"],
+      ["qSeekHash","1","_",  "qSeekHash","1","_",">","-"],
+      ["qSeekHash","#","_",  "qCopyY","#","_",">","-"],
+      ["qCopyY","0","_",     "qCopyY","0","0",">",">"],
+      ["qCopyY","1","_",     "qCopyY","1","1",">",">"],
+      ["qCopyY","_","_",     "qBack","_","_","<","<"],
+      ["qBack","0","0",      "qBack","0","0","<","<"],
+      ["qBack","1","1",      "qBack","1","1","<","<"],
+      ["qBack","#","0",      "qBack","#","0","<","<"],
+      ["qBack","#","1",      "qBack","#","1","<","<"],
+      ["qBack","0","_",      "qBack","0","_","<","-"],
+      ["qBack","1","_",      "qBack","1","_","<","-"],
+      ["qBack","#","_",      "qBack","#","_","<","-"],
+      ["qBack","_","_",      "qLen","_","_",">",">"],
+      ["qLen","0","0",       "qLen","0","0",">",">"],
+      ["qLen","0","1",       "qLen","0","1",">",">"],
+      ["qLen","1","0",       "qLen","1","0",">",">"],
+      ["qLen","1","1",       "qLen","1","1",">",">"],
+      ["qLen","#","0",       "qAccept","#","0","-","-"],
+      ["qLen","#","1",       "qAccept","#","1","-","-"],
+      ["qLen","0","_",       "qLoop","0","_","-","-"],
+      ["qLen","1","_",       "qLoop","1","_","-","-"],
+      ["qLen","#","_",       "qBack2","#","_","<","<"],
+      ["qBack2","0","0",     "qBack2","0","0","<","<"],
+      ["qBack2","0","1",     "qBack2","0","1","<","<"],
+      ["qBack2","1","0",     "qBack2","1","0","<","<"],
+      ["qBack2","1","1",     "qBack2","1","1","<","<"],
+      ["qBack2","#","0",     "qBack2","#","0","<","<"],
+      ["qBack2","#","1",     "qBack2","#","1","<","<"],
+      ["qBack2","0","_",     "qBack2","0","_","<","-"],
+      ["qBack2","1","_",     "qBack2","1","_","<","-"],
+      ["qBack2","#","_",     "qBack2","#","_","<","-"],
+      ["qBack2","_","_",     "qCmp","_","_",">",">"],
+      ["qCmp","0","0",       "qCmp","0","0",">",">"],
+      ["qCmp","1","1",       "qCmp","1","1",">",">"],
+      ["qCmp","0","1",       "qAccept","0","1","-","-"],
+      ["qCmp","1","0",       "qLoop","1","0","-","-"],
+      ["qCmp","#","_",       "qLoop","#","_","-","-"],
+      ["qLoop","0","0",      "qLoop","0","0","-","-"],
+      ["qLoop","0","1",      "qLoop","0","1","-","-"],
+      ["qLoop","0","_",      "qLoop","0","_","-","-"],
+      ["qLoop","1","0",      "qLoop","1","0","-","-"],
+      ["qLoop","1","1",      "qLoop","1","1","-","-"],
+      ["qLoop","1","_",      "qLoop","1","_","-","-"],
+      ["qLoop","#","0",      "qLoop","#","0","-","-"],
+      ["qLoop","#","1",      "qLoop","#","1","-","-"],
+      ["qLoop","#","_",      "qLoop","#","_","-","-"],
+      ["qLoop","_","0",      "qLoop","_","0","-","-"],
+      ["qLoop","_","1",      "qLoop","_","1","-","-"],
+      ["qLoop","_","_",      "qLoop","_","_","-","-"],
+    ])
+  },
+
+  search: {
+    name: "Recherche dans une liste",
+    init: "qInit",
+    accept: "qAccept",
+    tapes: 2,
+    delta: buildDelta([
+      ["qInit","0","_",    "qCopyX","0","|","-",">"],
+      ["qInit","1","_",    "qCopyX","1","|","-",">"],
+      ["qCopyX","0","_",   "qCopyX","0","0",">",">"],
+      ["qCopyX","1","_",   "qCopyX","1","1",">",">"],
+      ["qCopyX","#","_",   "qGoWord","#","_",">","-"],
+      ["qGoWord","0","0",  "qPrepLeft","0","0","-","-"],
+      ["qGoWord","0","1",  "qPrepLeft","0","1","-","-"],
+      ["qGoWord","0","_",  "qPrepLeft","0","_","-","-"],
+      ["qGoWord","0","|",  "qPrepLeft","0","|","-","-"],
+      ["qGoWord","1","0",  "qPrepLeft","1","0","-","-"],
+      ["qGoWord","1","1",  "qPrepLeft","1","1","-","-"],
+      ["qGoWord","1","_",  "qPrepLeft","1","_","-","-"],
+      ["qGoWord","1","|",  "qPrepLeft","1","|","-","-"],
+      ["qGoWord","_","0",  "qLoop","_","0","-","-"],
+      ["qGoWord","_","1",  "qLoop","_","1","-","-"],
+      ["qGoWord","_","_",  "qLoop","_","_","-","-"],
+      ["qGoWord","_","|",  "qLoop","_","|","-","-"],
+      ["qPrepLeft","0","0","qPrepLeft","0","0","-","<"],
+      ["qPrepLeft","0","1","qPrepLeft","0","1","-","<"],
+      ["qPrepLeft","0","_","qPrepLeft","0","_","-","<"],
+      ["qPrepLeft","0","|","qCmp","0","|","-",">"],
+      ["qPrepLeft","1","0","qPrepLeft","1","0","-","<"],
+      ["qPrepLeft","1","1","qPrepLeft","1","1","-","<"],
+      ["qPrepLeft","1","_","qPrepLeft","1","_","-","<"],
+      ["qPrepLeft","1","|","qCmp","1","|","-",">"],
+      ["qPrepLeft","_","0","qPrepLeft","_","0","-","<"],
+      ["qPrepLeft","_","1","qPrepLeft","_","1","-","<"],
+      ["qPrepLeft","_","_","qPrepLeft","_","_","-","<"],
+      ["qPrepLeft","_","|","qCmp","_","|","-",">"],
+      ["qCmp","0","0",     "qCmp","0","0",">",">"],
+      ["qCmp","1","1",     "qCmp","1","1",">",">"],
+      ["qCmp","#","_",     "qAccept","#","_","-","-"],
+      ["qCmp","#","0",     "qGoWord","#","0",">","-"],
+      ["qCmp","#","1",     "qGoWord","#","1",">","-"],
+      ["qCmp","0","1",     "qSkipWord","0","1",">","-"],
+      ["qCmp","1","0",     "qSkipWord","1","0",">","-"],
+      ["qCmp","0","_",     "qSkipWord","0","_",">","-"],
+      ["qCmp","1","_",     "qSkipWord","1","_",">","-"],
+      ["qSkipWord","0","0","qSkipWord","0","0",">","-"],
+      ["qSkipWord","0","1","qSkipWord","0","1",">","-"],
+      ["qSkipWord","0","_","qSkipWord","0","_",">","-"],
+      ["qSkipWord","0","|","qSkipWord","0","|",">","-"],
+      ["qSkipWord","1","0","qSkipWord","1","0",">","-"],
+      ["qSkipWord","1","1","qSkipWord","1","1",">","-"],
+      ["qSkipWord","1","_","qSkipWord","1","_",">","-"],
+      ["qSkipWord","1","|","qSkipWord","1","|",">","-"],
+      ["qSkipWord","#","0","qGoWord","#","0",">","-"],
+      ["qSkipWord","#","1","qGoWord","#","1",">","-"],
+      ["qSkipWord","#","_","qGoWord","#","_",">","-"],
+      ["qSkipWord","#","|","qGoWord","#","|",">","-"],
+      ["qSkipWord","_","0","qLoop","_","0","-","-"],
+      ["qSkipWord","_","1","qLoop","_","1","-","-"],
+      ["qSkipWord","_","_","qLoop","_","_","-","-"],
+      ["qSkipWord","_","|","qLoop","_","|","-","-"],
+      ["qLoop","0","0",    "qLoop","0","0","-","-"],
+      ["qLoop","0","1",    "qLoop","0","1","-","-"],
+      ["qLoop","0","_",    "qLoop","0","_","-","-"],
+      ["qLoop","0","|",    "qLoop","0","|","-","-"],
+      ["qLoop","1","0",    "qLoop","1","0","-","-"],
+      ["qLoop","1","1",    "qLoop","1","1","-","-"],
+      ["qLoop","1","_",    "qLoop","1","_","-","-"],
+      ["qLoop","1","|",    "qLoop","1","|","-","-"],
+      ["qLoop","#","0",    "qLoop","#","0","-","-"],
+      ["qLoop","#","1",    "qLoop","#","1","-","-"],
+      ["qLoop","#","_",    "qLoop","#","_","-","-"],
+      ["qLoop","#","|",    "qLoop","#","|","-","-"],
+      ["qLoop","_","0",    "qLoop","_","0","-","-"],
+      ["qLoop","_","1",    "qLoop","_","1","-","-"],
+      ["qLoop","_","_",    "qLoop","_","_","-","-"],
+      ["qLoop","_","|",    "qLoop","_","|","-","-"],
+    ])
+  },
+
+  mul: {
+    name: "Multiplication unaire",
+    init: "qInit",
+    accept: "qAccept",
+    tapes: 3,
+    delta: buildDelta([
+      ["qInit","1","_","_",         "qCopyN","1","|","|","-",">",">"],
+      ["qCopyN","1","_","_",        "qCopyN","1","1","_",">",">","-"],
+      ["qCopyN","#","_","_",        "qRewind2","#","_","_",">","<","-"],
+      ["qRewind2","1","1","_",      "qRewind2","1","1","_","-","<","-"],
+      ["qRewind2","1","|","_",      "qFindM","1","|","_","-","-","-"],
+      ["qRewind2","_","1","_",      "qRewind2","_","1","_","-","<","-"],
+      ["qRewind2","_","|","_",      "qFindM","_","|","_","-","-","-"],
+      ["qFindM","X","|","_",        "qFindM","X","|","_",">","-","-"],
+      ["qFindM","1","|","_",        "qStartCopy","X","|","_","-",">","-"],
+      ["qFindM","_","|","_",        "qAccept","_","|","_","-","-","-"],
+      ["qStartCopy","X","|","_",    "qCopyToRes","X","|","_","-",">","-"],
+      ["qStartCopy","X","1","_",    "qCopyToRes","X","1","_","-","-","-"],
+      ["qCopyToRes","X","1","_",    "qCopyToRes","X","1","1","-",">",">"],
+      ["qCopyToRes","X","_","_",    "qRewind2AfterCopy","X","_","_","-","<","-"],
+      ["qRewind2AfterCopy","X","1","_","qRewind2AfterCopy","X","1","_","-","<","-"],
+      ["qRewind2AfterCopy","X","|","_","qFindM","X","|","_",">","-","-"],
+    ])
+  }
+};
+
+function buildDelta(rows) {
+  const d = {};
+  for (const row of rows) {
+    const k = row.slice(0, 1 + (row.length - 1) / 2).join("|");
+    d[k] = row.slice(1 + (row.length - 1) / 2);
+  }
+  // Rebuild properly
+  return buildDeltaProper(rows);
+}
+
+function buildDeltaProper(rows) {
+  const d = {};
+  for (const row of rows) {
+    // Format: [q, s1, s2, ..., q', w1, w2, ..., d1, d2, ...]
+    // We don't know k here, so we detect from machine definition
+    d[row[0] + "|" + row.slice(1).join("|")] = null; // placeholder
+  }
+  return rows; // return raw rows, we'll process in sim
+}
+
+// ── Simulation state ─────────────────────────────────────────────────────────
+let sim = null;
+let autoTimer = null;
+
+function getMachineK(mkey) { return MACHINES[mkey].tapes; }
+
+function makeSim(mkey, word) {
+  const m = MACHINES[mkey];
+  const k = m.tapes;
+  const tapes = [];
+  const heads = [];
+  for (let i = 0; i < k; i++) {
+    tapes.push(i === 0 ? [...word].concat(["_"]) : ["_"]);
+    heads.push(0);
+  }
+  return {
+    mkey, m, k,
+    state: m.init,
+    tapes, heads,
+    step: 0,
+    status: "ready",   // ready | running | accepted | blocked | loop
+    lastTransition: null,
+    history: []
+  };
+}
+
+function lookup(m, state, syms) {
+  for (const row of m.delta) {
+    if (row[0] !== state) continue;
+    let match = true;
+    for (let i = 0; i < syms.length; i++) {
+      if (row[1 + i] !== syms[i]) { match = false; break; }
+    }
+    if (match) return row;
+  }
+  return null;
+}
+
+function readSym(tape, head) {
+  if (head < 0 || head >= tape.length) return "_";
+  return tape[head] || "_";
+}
+
+function stepSim() {
+  if (!sim) return;
+  if (sim.status === "accepted" || sim.status === "blocked") return;
+
+  const syms = sim.tapes.map((t, i) => readSym(t, sim.heads[i]));
+  const row = lookup(sim.m, sim.state, syms);
+
+  if (!row) {
+    sim.status = sim.m.accept === sim.state ? "accepted" : "blocked";
+    updateUI();
+    return;
+  }
+
+  const k = sim.k;
+  // row = [q, s1..sk, q', w1..wk, d1..dk]
+  const newState = row[1 + k];
+  const writes   = row.slice(2 + k, 2 + 2*k);
+  const dirs     = row.slice(2 + 2*k);
+
+  // Record transition for log
+  sim.lastTransition = {
+    from: sim.state, syms: [...syms],
+    to: newState, writes: [...writes], dirs: [...dirs]
+  };
+
+  // Apply writes
+  for (let i = 0; i < k; i++) {
+    while (sim.heads[i] >= sim.tapes[i].length) sim.tapes[i].push("_");
+    sim.tapes[i][sim.heads[i]] = writes[i];
+  }
+
+  sim.state = newState;
+
+  // Move heads
+  for (let i = 0; i < k; i++) {
+    if (dirs[i] === ">") sim.heads[i]++;
+    else if (dirs[i] === "<") sim.heads[i]--;
+    if (sim.heads[i] < 0) { sim.tapes[i].unshift("_"); sim.heads[i] = 0; }
+    while (sim.heads[i] >= sim.tapes[i].length) sim.tapes[i].push("_");
+  }
+
+  sim.step++;
+
+  if (sim.state === sim.m.accept) sim.status = "accepted";
+  else if (sim.step > 5000) sim.status = "loop";
+
+  sim.history.push({...sim.lastTransition, step: sim.step, status: sim.status});
+  updateUI();
+}
+
+// ── UI ───────────────────────────────────────────────────────────────────────
+function loadMachine() {
+  const mkey = document.getElementById("machineSelect").value;
+  const word = document.getElementById("inputWord").value.trim() || "_";
+  sim = makeSim(mkey, word);
+  sim.status = "running";
+  document.getElementById("btnStep").disabled  = false;
+  document.getElementById("btnRun").disabled   = false;
+  document.getElementById("btnReset").disabled = false;
+  document.getElementById("btnPause").disabled = true;
+  document.getElementById("logEntries").innerHTML = "";
+  updateUI();
+}
+
+function step() {
+  if (!sim) return;
+  stepSim();
+}
+
+function runAuto() {
+  if (autoTimer) return;
+  document.getElementById("btnRun").disabled   = true;
+  document.getElementById("btnStep").disabled  = true;
+  document.getElementById("btnPause").disabled = false;
+  const ms = parseInt(document.getElementById("speed").value);
+  autoTimer = setInterval(() => {
+    stepSim();
+    if (sim.status !== "running") pauseAuto();
+  }, ms);
+}
+
+function pauseAuto() {
+  clearInterval(autoTimer);
+  autoTimer = null;
+  document.getElementById("btnRun").disabled   = false;
+  document.getElementById("btnStep").disabled  = false;
+  document.getElementById("btnPause").disabled = true;
+}
+
+function resetSim() {
+  pauseAuto();
+  loadMachine();
+}
+
+function updateUI() {
+  if (!sim) return;
+
+  // Status dot
+  const dot = document.getElementById("statusDot");
+  dot.className = "status-dot " + sim.status;
+  document.getElementById("statusState").textContent = sim.state;
+  document.getElementById("statusStep").textContent  = `Étape ${sim.step}`;
+
+  // Tapes
+  const container = document.getElementById("tapesContainer");
+  container.innerHTML = "";
+  for (let i = 0; i < sim.k; i++) {
+    renderTape(container, i);
+  }
+
+  // Log
+  if (sim.lastTransition) {
+    const entries = document.getElementById("logEntries");
+    const e = document.createElement("div");
+    const t = sim.lastTransition;
+    e.className = "log-entry" + (sim.status === "accepted" ? " accepted" : sim.status === "blocked" ? " rejected" : "");
+    const symsStr  = t.syms.join(",");
+    const writesStr = t.writes.join(",");
+    const dirsStr  = t.dirs.join(",");
+    e.innerHTML = `<span class="step-n">#${sim.step}</span><span class="transition">(${t.from}, ${symsStr}) → (${t.to}, ${writesStr}, ${dirsStr})</span>`;
+    entries.prepend(e);
+  }
+}
+
+function renderTape(container, tapeIdx) {
+  const div = document.createElement("div");
+  div.className = "tape-section";
+
+  const label = document.createElement("div");
+  label.className = "tape-label";
+  label.textContent = `Ruban ${tapeIdx + 1}`;
+  div.appendChild(label);
+
+  const viewport = document.createElement("div");
+  viewport.className = "tape-viewport";
+
+  const scroll = document.createElement("div");
+  scroll.className = "tape-scroll";
+  scroll.id = `tape-scroll-${tapeIdx}`;
+
+  const tape = sim.tapes[tapeIdx];
+  const head = sim.heads[tapeIdx];
+  const PAD  = 6;
+  const start = Math.max(0, head - PAD);
+  const end   = Math.min(tape.length - 1, head + PAD + 12);
+
+  // Show a window around the head
+  for (let j = start; j <= end; j++) {
+    const cell = document.createElement("div");
+    const sym  = tape[j] || "_";
+    let cls = "cell";
+    if (sym === "_") cls += " blank";
+    if (j === head)  cls += " active";
+    cell.className = cls;
+
+    const displaySym = sym === "_" ? "□" : sym;
+    cell.textContent = displaySym;
+
+    if (j === head) {
+      const arrow = document.createElement("span");
+      arrow.className = "head-arrow";
+      arrow.textContent = "▲";
+      cell.appendChild(arrow);
+    }
+    scroll.appendChild(cell);
+  }
+
+  viewport.appendChild(scroll);
+  div.appendChild(viewport);
+  container.appendChild(div);
+}
+
+// Speed slider
+document.getElementById("speed").addEventListener("input", function() {
+  document.getElementById("speedVal").textContent = this.value + "ms";
+  if (autoTimer) { pauseAuto(); runAuto(); }
+});
+
+// Default input per machine
+document.getElementById("machineSelect").addEventListener("change", function() {
+  const defaults = { compare: "10#11", search: "10#01#10#111", mul: "11#111" };
+  document.getElementById("inputWord").value = defaults[this.value] || "";
+});
+</script>
+</body>
+</html>
