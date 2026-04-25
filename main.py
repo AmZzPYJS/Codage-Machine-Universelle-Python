@@ -85,3 +85,36 @@ if __name__ == "__main__":
 
     else:
         aide()
+
+# Q9 — Machine Universelle
+if len(sys.argv) >= 2 and sys.argv[1] == "q9":
+    if len(sys.argv) < 3:
+        print("Usage: python main.py q9 <codage_M>#<mot>")
+        print("Exemple: python main.py q9 machines/swap01.tm 010")
+    else:
+        from exo7 import coder_machine
+        from exo9 import machine_universelle
+        codage = coder_machine(sys.argv[2])
+        mot = sys.argv[3] if len(sys.argv) > 3 else ""
+        entree = f"{codage}#{mot}"
+        accepte, ruban, etapes = machine_universelle(entree, verbose=True)
+
+# Q10 — Machine Universelle Bornée
+elif len(sys.argv) >= 2 and sys.argv[1] == "q10":
+    if len(sys.argv) < 5:
+        print("Usage: python main.py q10 <fichier.tm> <mot> <n>")
+    else:
+        from exo7 import coder_machine
+        from exo10 import machine_universelle_bornee
+        codage = coder_machine(sys.argv[2])
+        mot = sys.argv[3]
+        n = sys.argv[4]
+        entree = f"{codage}#{mot}#{n}"
+        accepte, ruban, etapes, raison = machine_universelle_bornee(entree, verbose=True)
+        print(f"\nRaison d'arrêt : {raison} | Étapes : {etapes}")
+
+# Q11 — Preuves
+elif len(sys.argv) >= 2 and sys.argv[1] == "q11":
+    from exo11 import *
+    import exo11
+    exec(open("exo11.py").read().split("if __name__")[1].split('"""')[0])
