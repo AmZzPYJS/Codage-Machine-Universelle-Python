@@ -17,8 +17,8 @@ class MT:
 class Configuration:
     def __init__(self, etat, rubans, tetes):
         self.etat = etat
-        self.rubans = rubans          # liste de rubans, chaque ruban = liste de symboles
-        self.tetes = tetes            # liste des positions de tête
+        self.rubans = rubans
+        self.tetes = tetes
 
     def copier(self):
         nouveaux_rubans = [ruban[:] for ruban in self.rubans]

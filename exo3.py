@@ -39,12 +39,11 @@ def deplacer_tete(config, numero_ruban, mouvement):
     else:
         raise ValueError("Mouvement inconnu : " + mouvement)
 
-    # si on dépasse à gauche, on rajoute un blanc
     if config.tetes[numero_ruban] < 0:
         config.rubans[numero_ruban].insert(0, "_")
         config.tetes[numero_ruban] = 0
 
-    # si on dépasse à droite, on rajoute un blanc
+
     if config.tetes[numero_ruban] >= len(config.rubans[numero_ruban]):
         config.rubans[numero_ruban].append("_")
 

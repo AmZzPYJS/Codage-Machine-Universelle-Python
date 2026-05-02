@@ -50,7 +50,6 @@ def charger_mt(nom_fichier):
             i += 1
             continue
 
-        # transitions sur 2 lignes
         if "," in ligne:
             if i + 1 >= len(lignes):
                 raise ValueError("Transition incomplète dans le fichier.")

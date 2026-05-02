@@ -1,25 +1,14 @@
-# Question 4 — Simuler la machine jusqu'à l'état final
-
 from exo2 import creer_configuration_initiale
 from exo3 import un_pas_de_calcul
 
 
 def extraire_resultat(config):
-    """
-    Extrait le contenu utile du ruban 0 (ou du dernier ruban pour les machines
-    qui écrivent leur résultat sur un ruban séparé) en supprimant les blancs de fin.
-    Retourne une chaîne de caractères.
-    """
-    ruban = config.rubans[-1]  # dernier ruban = ruban de sortie
+    ruban = config.rubans[-1]
     contenu = "".join(ruban).rstrip("_")
     return contenu if contenu else "_"
 
 
 def simuler_machine(mt, mot, max_etapes=10000):
-    """
-    Simule la machine mt sur le mot jusqu'à atteindre l'état final ou la limite d'étapes.
-    Retourne la configuration finale.
-    """
     config = creer_configuration_initiale(mt, mot)
     compteur = 0
 
