@@ -5,11 +5,11 @@ Module : IN620 — Calculabilité · 2025-2026
 
 ## Groupe
 
-| Nom | Questions |
-|---|---|
-| MEZOUER Amîn | Q1, Q2, Q3, Q4 |
-| Abdallah | Q5, Q6, Q7, Q8 |
-| Moussa | Q9, Q10, Q11 |
+|        Nom         |   Questions    |
+|--------------------|----------------|
+| MEZOUER Amîn       | Q1, Q2, Q3, Q4 |
+| BENZOUBIR Abdallah | Q5, Q6, Q7, Q8 |
+| NGUETTE Moussa     | Q9, Q10, Q11   |
 
 ## Prérequis
 

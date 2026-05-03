@@ -59,8 +59,8 @@ class TestQ2Chargement(unittest.TestCase):
     def test_charger_compare(self):
         mt = charger_mt("machines/q6_compare.tm")
         self.assertEqual(mt.nom, "Compare x<y")
-        self.assertEqual(mt.etat_initial, "qSeekHash")
-        self.assertIn("qAccept", mt.etats_finaux)
+        self.assertEqual(mt.etat_initial, "q0")
+        self.assertIn("q8", mt.etats_finaux)
         self.assertEqual(mt.nb_rubans, 2)
 
     def test_charger_search(self):
@@ -74,7 +74,7 @@ class TestQ2Chargement(unittest.TestCase):
     def test_config_initiale_ruban0(self):
         mt = charger_mt("machines/q6_compare.tm")
         config = creer_configuration_initiale(mt, "10#11")
-        self.assertEqual(config.etat, "qSeekHash")
+        self.assertEqual(config.etat, "q0")
         self.assertEqual(config.rubans[0], list("10#11") + ["_"])
 
     def test_config_initiale_rubans_vides(self):
@@ -109,7 +109,7 @@ class TestQ3UnPas(unittest.TestCase):
     def test_un_pas_etat_final_retourne_none(self):
         # Créer une config déjà en état final
         mt = charger_mt("machines/q6_compare.tm")
-        config = Configuration("qAccept", [["_"], ["_"]], [0, 0])
+        config = Configuration("q8", [["_"], ["_"]], [0, 0])
         # est_final → True mais un_pas_de_calcul ne vérifie pas ça, il cherche une transition
         # Il doit retourner None car pas de transition depuis qAccept
         resultat = un_pas_de_calcul(mt, config)

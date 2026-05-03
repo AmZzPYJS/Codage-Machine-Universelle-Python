@@ -1,8 +1,12 @@
+# Question 4 — Simulation complète jusqu'à l'état final
+# Répète un_pas_de_calcul jusqu'à arrêt, boucle ou blocage
+
 from exo2 import creer_configuration_initiale
 from exo3 import un_pas_de_calcul
 
 
 def extraire_resultat(config):
+    # Retourne le contenu utile du dernier ruban (ruban de sortie)
     ruban = config.rubans[-1]
     contenu = "".join(ruban).rstrip("_")
     return contenu if contenu else "_"
@@ -34,10 +38,8 @@ def simuler_machine(mt, mot, max_etapes=10000):
 
 if __name__ == "__main__":
     from exo2 import charger_mt
-
     mt = charger_mt("machines/q6_compare.tm")
-    print("=== Comparaison 10 < 11 (attendu : arrêt) ===")
+    print("=== 10 < 11 (attendu : arrêt) ===")
     simuler_machine(mt, "10#11", 1000)
-
-    print("\n=== Comparaison 11 < 10 (attendu : boucle) ===")
+    print("\n=== 11 > 10 (attendu : boucle) ===")
     simuler_machine(mt, "11#10", 200)
